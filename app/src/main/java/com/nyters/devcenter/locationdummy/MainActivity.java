@@ -19,6 +19,16 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -32,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private TextView txtLoaction, txtTime;
     private Button btnGatherLocation;
+    private MapView mapsShowcase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +53,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         txtLoaction = (TextView) findViewById(R.id.txtLocation);
         txtTime = (TextView) findViewById(R.id.txtTime);
         btnGatherLocation = (Button) findViewById(R.id.btnGatherLocation);
+        mapsShowcase = (MapView) findViewById(R.id.mapsShowcase);
+        mapsShowcase.onCreate(savedInstanceState);
+        MapsInitializer.initialize(MainActivity.this);
+
+
+
+
+
 
         provideRequestUpdate((long) 5000,(long) 5, LocationManager.NETWORK_PROVIDER);
 
@@ -50,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             public void onClick(View v) {
                 txtLoaction.setText(getCompleteAddressString(latitude, longitude));
                 txtTime.setText("Time: " + formatTime(time));
+                setMapLocation(mapsShowcase);
+
             }
         });
 
@@ -156,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             provideRequestUpdate((long) 5000,(long) 5, LocationManager.NETWORK_PROVIDER);
                             txtLoaction.setText(getCompleteAddressString(MainActivity.this.latitude, MainActivity.this.longitude));
                             txtTime.setText("Time: " + formatTime(time));
+                            setMapLocation(mapsShowcase);
                         }
                     });
 
@@ -165,4 +187,41 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return strAdd;
     }
 
+    public void setMapLocation(MapView mapsShowcase) {
+        mapsShowcase.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+                googleMap.setMyLocationEnabled(true);
+
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 10);
+                googleMap.animateCamera(cameraUpdate);
+
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapsShowcase.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapsShowcase.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapsShowcase.onLowMemory();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapsShowcase.onPause();
+    }
 }
